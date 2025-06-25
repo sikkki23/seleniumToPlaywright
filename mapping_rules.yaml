@@ -1,0 +1,34 @@
+imports:
+  "org.openqa.selenium.*": "from playwright.sync_api import Page, expect"
+  "org.junit.*": "import pytest"
+
+class_declaration:
+  pattern: "public class (\\w+)"
+  replacement: "def test_{lower_name}(page: Page):"
+
+method_declaration:
+  pattern: "@Test\\s+public void (\\w+)\\(\\)"
+  replacement: "def test_{name}(page: Page):"
+
+driver_initialization:
+  pattern: "WebDriver driver = new (\\w+)Driver\\(\\);"
+  replacement: "# Playwright manages browser via fixture"
+
+navigation:
+  pattern: "driver\\.get\\(\"(.*?)\"\\);"
+  replacement: 'page.goto("{url}")'
+
+element_interaction:
+  - pattern: "driver\\.findElement\\(By\\.id\\(\"(.*?)\"\\)\\)\\.(click|sendKeys|getText)\\(([^)]*)\\);"
+    actions:
+      click: 'page.locator("#{locator}").click()'
+      sendKeys: 'page.locator("#{locator}").fill("{text}")'
+      getText: 'page.locator("#{locator}").inner_text()'
+  - pattern: "driver\\.findElement\\(By\\.xpath\\(\"(.*?)\"\\)\\)\\.(\\w+)\\(([^)]*)\\);"
+    actions:
+      click: 'page.locator("{locator}").click()'
+      # Add other actions as needed
+
+cleanup:
+  pattern: "driver\\.quit\\(\\);"
+  replacement: "# Browser closed automatically by Playwright"
